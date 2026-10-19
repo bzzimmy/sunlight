@@ -15,10 +15,11 @@ jobs:
     - run: cargo fmt --all --check
 
   clippy:
-    runs-on: windows-latest
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
       with:
         components: clippy
-    - run: cargo clippy --all-targets -- -D warnings
+        targets: aarch64-apple-ios-macabi
+    - run: cargo clippy --all-targets --target aarch64-apple-ios-macabi -- -D warnings
