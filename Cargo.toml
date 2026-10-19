@@ -1,13 +1,14 @@
-[package]
-name = "sunlight"
+[workspace]
+members = ["crates/*"]
+resolver = "3"
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.96"
 license = "MIT"
 authors = ["Ben Zimmermann"]
 publish = false
-
-[dependencies]
 
 [profile.release]
 debug = 1
