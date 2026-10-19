@@ -4,7 +4,8 @@ mod offsets;
 
 use std::ffi::{c_char, c_void};
 use std::mem;
-use std::sync::{Mutex, OnceLock, PoisonError};
+use std::sync::OnceLock;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use anyhow::{Context, Result};
 
@@ -17,7 +18,7 @@ struct Engine {
 }
 
 static ENGINE: OnceLock<Engine> = OnceLock::new();
-static DATA_MODELS: Mutex<Vec<usize>> = Mutex::new(Vec::new());
+static GAME: AtomicUsize = AtomicUsize::new(0);
 
 #[used]
 #[unsafe(link_section = "__DATA,__mod_init_func")]
@@ -52,20 +53,24 @@ fn attach() -> Result<()> {
 unsafe extern "C" fn step(job: *mut u8, stats: *mut c_void) -> i32 {
     let engine = ENGINE.get().unwrap();
     let result = unsafe { (engine.step)(job, stats) };
-    let data_model =
-        unsafe { job.add(offsets::JOB_DATA_MODEL).cast::<usize>().read() };
-    if data_model != 0 && first_seen(data_model) {
-        eprintln!("sunlight: DataModel {data_model:#x}");
+    let data_model = unsafe { read::<*mut u8>(job, offsets::JOB_DATA_MODEL) };
+    if unsafe { joined(data_model) } {
         unsafe { (engine.print)(0, c"hiiii from sunlight".as_ptr()) };
     }
     result
 }
 
-fn first_seen(data_model: usize) -> bool {
-    let mut seen = DATA_MODELS.lock().unwrap_or_else(PoisonError::into_inner);
-    if seen.contains(&data_model) {
+unsafe fn joined(data_model: *mut u8) -> bool {
+    if data_model.is_null() {
         return false;
     }
-    seen.push(data_model);
-    true
+    let place_id =
+        unsafe { read::<i64>(data_model, offsets::DATA_MODEL_PLACE_ID) };
+    place_id != 0
+        && GAME.swap(data_model as usize, Ordering::Relaxed)
+            != data_model as usize
+}
+
+unsafe fn read<T>(base: *mut u8, offset: usize) -> T {
+    unsafe { base.add(offset).cast::<T>().read() }
 }

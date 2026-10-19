@@ -9,3 +9,5 @@ pub const WHSJ_STEP: usize = 0x19D4128;
 pub const STEP_SLOT: usize = 9;
 /// Read by `DataModelJob::step` before it calls the step slot.
 pub const JOB_DATA_MODEL: usize = 0x188;
+/// DataModel `"PlaceId"` property getter: `+736` subobject, then `+0x88`.
+pub const DATA_MODEL_PLACE_ID: usize = 0x368;

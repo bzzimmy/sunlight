@@ -18,10 +18,6 @@ unsafe extern "C" {
 }
 
 /// Swaps a pointer in read-only data, failing if it does not hold `expected`.
-///
-/// # Safety
-///
-/// `slot` must point into a mapped, read-only data section.
 pub unsafe fn replace(
     slot: *mut usize,
     expected: usize,
@@ -35,8 +31,8 @@ pub unsafe fn replace(
     let swapped = unsafe { AtomicUsize::from_ptr(slot) }.compare_exchange(
         expected,
         value,
-        Ordering::AcqRel,
-        Ordering::Acquire,
+        Ordering::Relaxed,
+        Ordering::Relaxed,
     );
     protect(VM_PROT_READ);
     if let Err(actual) = swapped {
