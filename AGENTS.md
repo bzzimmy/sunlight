@@ -1,0 +1,5 @@
+- Write clean, idiomatic Rust. Don't overengineer.
+- Avoid comments and long doc comments unless they're truly necessary.
+- Every line should earn its place. No bloat.
+- Ensure `cargo fmt --all --check` and `cargo clippy --all-targets -- -D warnings` pass.
+- Only write tests that verify real behavior. No tautological tests.
