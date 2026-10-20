@@ -64,7 +64,9 @@ unsafe fn joined(data_model: *mut u8) -> bool {
     }
     let place_id =
         unsafe { read::<i64>(data_model, offsets::DATA_MODEL_PLACE_ID) };
+    let loaded = unsafe { read::<u8>(data_model, offsets::DATA_MODEL_LOADED) };
     place_id != 0
+        && loaded != 0
         && GAME.swap(data_model as usize, Ordering::Relaxed)
             != data_model as usize
 }

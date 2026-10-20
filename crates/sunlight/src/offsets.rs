@@ -22,6 +22,7 @@ pub const SIGGUARD_PASS_WORD: u32 = 0x52800000;
 pub const JOB_DATA_MODEL: usize = 0x188;
 pub const JOB_SCRIPT_CONTEXT: usize = 0x1B0;
 pub const DATA_MODEL_PLACE_ID: usize = 0x368;
+pub const DATA_MODEL_LOADED: usize = 0x5D8;
 pub const THREAD_DATA: usize = 0x8;
 pub const THREAD_IDENTITY: usize = 0x30;
 pub const THREAD_CAPABILITIES: usize = 0xA0;
