@@ -17,6 +17,8 @@ export({
 	setthreadidentity = native.setthreadidentity,
 	getidentity = native.getthreadidentity,
 	setidentity = native.setthreadidentity,
+	getthreadcontext = native.getthreadidentity,
+	setthreadcontext = native.setthreadidentity,
 	getgenv = function()
 		return genv
 	end,
@@ -24,3 +26,4 @@ export({
 		return "Sunlight", version
 	end,
 })
+genv.getexecutorname = genv.identifyexecutor
