@@ -1,12 +1,15 @@
 use std::ffi::{c_char, c_void};
 use std::slice;
 
-unsafe extern "C" {
+unsafe extern "C-unwind" {
     fn sunlight_compile(
         source: *const c_char,
         size: usize,
         out: *mut usize,
     ) -> *mut c_char;
+}
+
+unsafe extern "C" {
     fn free(pointer: *mut c_void);
 }
 

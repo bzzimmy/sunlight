@@ -8,10 +8,27 @@ pub const GET_GLOBAL_STATE: usize = 0x197CD14;
 pub const SANDBOX_THREAD: usize = 0x19C0DBC;
 pub const SET_PROTO_CAPABILITIES: usize = 0x1978DE0;
 pub const TASK_DEFER: usize = 0x195AE44;
+
 pub const LUA_NEWTHREAD: usize = 0x4306BA0;
+pub const LUA_GETTOP: usize = 0x4306CAC;
 pub const LUA_SETTOP: usize = 0x4306CC0;
-pub const LUA_TOLSTRING: usize = 0x43078E8;
+pub const LUA_INSERT: usize = 0x4306E94;
 pub const LUA_REPLACE: usize = 0x4306F4C;
+pub const LUA_PUSHVALUE: usize = 0x430708C;
+pub const LUA_TYPE: usize = 0x430716C;
+pub const LUA_TOLSTRING: usize = 0x43078E8;
+pub const LUA_PUSHNIL: usize = 0x43080FC;
+pub const LUA_PUSHINTEGER: usize = 0x43081EC;
+pub const LUA_PUSHLSTRING: usize = 0x43083FC;
+pub const LUA_PUSHCCLOSUREK: usize = 0x43085F0;
+pub const LUA_GETFIELD: usize = 0x43089AC;
+pub const LUA_CREATETABLE: usize = 0x4308E98;
+pub const LUA_SETFIELD: usize = 0x43093DC;
+pub const LUA_CALL: usize = 0x4309A38;
+pub const LUA_STATUS: usize = 0x4309D58;
+pub const LUAL_CHECKLSTRING: usize = 0x430BAC8;
+pub const LUAL_CHECKTYPE: usize = 0x430BC28;
+pub const LUAL_CHECKINTEGER: usize = 0x430BDEC;
 pub const LUAU_LOAD: usize = 0x43355E0;
 
 /// `BL sigguard` in the `luau_load` body, replaced by `MOV W0, #0`.
