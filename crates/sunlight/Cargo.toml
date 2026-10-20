@@ -12,3 +12,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "1.0.104"
+
+[build-dependencies]
+cc = "1.2"
