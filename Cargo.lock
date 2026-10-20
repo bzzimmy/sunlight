@@ -141,6 +141,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
+name = "luau"
+version = "0.1.0"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "once_cell_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -188,7 +195,7 @@ name = "sunlight"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "cc",
+ "luau",
 ]
 
 [[package]]

@@ -3,7 +3,8 @@ mod native;
 
 use std::ffi::{CStr, c_char};
 
-use crate::compile::compile;
+use luau::compile;
+
 use crate::lua::*;
 use crate::roblox;
 
