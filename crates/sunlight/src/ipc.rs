@@ -8,7 +8,7 @@ use std::thread;
 
 pub const SOCKET: &str = "/tmp/sunlight.sock";
 
-static QUEUE: Mutex<Vec<String>> = Mutex::new(Vec::new());
+static QUEUE: Mutex<Vec<Vec<u8>>> = Mutex::new(Vec::new());
 
 /// Queues each connection's contents as one script. Nothing is sent back,
 /// since output and errors already reach the Roblox log; write a status to
@@ -19,8 +19,8 @@ pub fn listen() -> io::Result<()> {
     fs::set_permissions(SOCKET, Permissions::from_mode(0o600))?;
     thread::spawn(move || {
         for stream in listener.incoming() {
-            let mut source = String::new();
-            if stream.and_then(|mut s| s.read_to_string(&mut source)).is_ok() {
+            let mut source = Vec::new();
+            if stream.and_then(|mut s| s.read_to_end(&mut source)).is_ok() {
                 QUEUE.lock().unwrap().push(source);
             }
         }
@@ -28,6 +28,6 @@ pub fn listen() -> io::Result<()> {
     Ok(())
 }
 
-pub fn take() -> Vec<String> {
+pub fn take() -> Vec<Vec<u8>> {
     mem::take(&mut QUEUE.lock().unwrap())
 }

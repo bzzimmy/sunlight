@@ -52,7 +52,7 @@ impl Engine {
         }
     }
 
-    pub unsafe fn execute(&self, job: *mut u8, source: &str) {
+    pub unsafe fn execute(&self, job: *mut u8, source: &[u8]) {
         let bytecode = compile(source);
         unsafe {
             let script_context = read(job, offsets::JOB_SCRIPT_CONTEXT);

@@ -11,7 +11,7 @@ unsafe extern "C" {
 }
 
 /// Compiles to client bytecode. Errors are encoded for `luau_load` to report.
-pub fn compile(source: &str) -> Vec<u8> {
+pub fn compile(source: &[u8]) -> Vec<u8> {
     let mut size = 0;
     unsafe {
         let data =
