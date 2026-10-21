@@ -33,6 +33,8 @@ local request = newcclosure(function(options)
 	return native.request(url, method, headers, options.Body)
 end)
 
+local require = require
+
 export({
 	newcclosure = newcclosure,
 	loadstring = native.loadstring,
@@ -52,6 +54,19 @@ export({
 	http_request = request,
 	HttpGet = native.httpget,
 	HttpGetAsync = native.httpget,
+	require = function(module)
+		local ok, result = pcall(require, module)
+		if not ok and tostring(result):find("non%-RobloxScript module") then
+			local identity = native.getthreadidentity()
+			native.setthreadidentity(2)
+			ok, result = pcall(require, module)
+			native.setthreadidentity(identity)
+		end
+		return if ok then result else error(result, 0)
+	end,
 })
+genv._G = {}
+genv.shared = {}
+genv.script = Instance.new("LocalScript")
 genv.getexecutorname = genv.identifyexecutor
 genv.http = { request = request }
