@@ -1,6 +1,8 @@
 use std::ffi::{CStr, c_char};
+use std::ptr;
 
 use crate::offsets::*;
+use crate::read;
 
 pub type State = *mut u8;
 pub type CFunction = unsafe extern "C-unwind" fn(State) -> i32;
@@ -11,7 +13,9 @@ pub const LUA_GLOBALSINDEX: i32 = -10002;
 pub const LUA_MULTRET: i32 = -1;
 pub const LUA_OK: i32 = 0;
 pub const LUA_TNIL: i32 = 0;
+pub const LUA_TBOOLEAN: i32 = 1;
 pub const LUA_TSTRING: i32 = 6;
+pub const LUA_TTABLE: i32 = 7;
 pub const LUA_TFUNCTION: i32 = 8;
 
 pub const fn lua_upvalueindex(index: i32) -> i32 {
@@ -45,6 +49,26 @@ pub unsafe fn error(l: State, message: &CStr) -> ! {
     unreachable!()
 }
 
+/// Returns the collectable object at `index`.
+pub unsafe fn pointer(l: State, index: i32) -> *mut u8 {
+    unsafe {
+        lua_pushvalue(l, index);
+        let value =
+            read::<*mut u8>(l, THREAD_TOP).sub(16).cast::<*mut u8>().read();
+        lua_settop(l, -2);
+        value
+    }
+}
+
+/// Pushes a copy of the value stored at `value`.
+pub unsafe fn push(l: State, value: *const u8) {
+    unsafe {
+        let top: *mut u8 = read(l, THREAD_TOP);
+        ptr::copy_nonoverlapping(value, top, 16);
+        l.add(THREAD_TOP).cast::<*mut u8>().write(top.add(16));
+    }
+}
+
 /// Declares wrappers that call `RobloxLib` functions at unslid addresses.
 macro_rules! engine {
     ($(fn $name:ident($($arg:ident: $ty:ty),*) $(-> $ret:ty)? = $offset:expr;)*) => {$(
@@ -70,6 +94,7 @@ engine! {
     fn lua_pushvalue(l: State, index: i32) = LUA_PUSHVALUE;
     fn lua_type(l: State, index: i32) -> i32 = LUA_TYPE;
     fn lua_rawequal(l: State, a: i32, b: i32) -> i32 = LUA_RAWEQUAL;
+    fn lua_toboolean(l: State, index: i32) -> bool = LUA_TOBOOLEAN;
     fn lua_tolstring(l: State, index: i32, size: *mut usize) -> *const c_char
         = LUA_TOLSTRING;
     fn lua_tolstringatom(
@@ -98,9 +123,14 @@ engine! {
         = LUA_GETFIELD;
     fn lua_rawgeti(l: State, index: i32, n: i32) -> i32 = LUA_RAWGETI;
     fn lua_createtable(l: State, array: i32, records: i32) = LUA_CREATETABLE;
+    fn lua_setreadonly(l: State, index: i32, enabled: i32) = LUA_SETREADONLY;
+    fn lua_getreadonly(l: State, index: i32) -> i32 = LUA_GETREADONLY;
     fn lua_getmetatable(l: State, index: i32) -> i32 = LUA_GETMETATABLE;
+    fn lua_getfenv(l: State, index: i32) = LUA_GETFENV;
     fn lua_setfield(l: State, index: i32, key: *const c_char) = LUA_SETFIELD;
     fn lua_rawset(l: State, index: i32) = LUA_RAWSET;
+    fn lua_setmetatable(l: State, index: i32) -> i32 = LUA_SETMETATABLE;
+    fn lua_setfenv(l: State, index: i32) -> i32 = LUA_SETFENV;
     fn lua_call(l: State, arguments: i32, results: i32) = LUA_CALL;
     fn lua_pcall(l: State, arguments: i32, results: i32, handler: i32) -> i32
         = LUA_PCALL;
@@ -108,10 +138,12 @@ engine! {
     fn lua_next(l: State, index: i32) -> i32 = LUA_NEXT;
     fn lua_ref(l: State, index: i32) -> i32 = LUA_REF;
     fn lua_unref(l: State, reference: i32) = LUA_UNREF;
+    fn lua_clonefunction(l: State, index: i32) = LUA_CLONEFUNCTION;
     fn lua_yield(l: State, results: i32) -> i32 = LUA_YIELD;
     fn luaL_checklstring(l: State, index: i32, size: *mut usize)
         -> *const c_char = LUAL_CHECKLSTRING;
     fn luaL_checktype(l: State, index: i32, kind: i32) = LUAL_CHECKTYPE;
+    fn luaL_checkany(l: State, index: i32) = LUAL_CHECKANY;
     fn luaL_checkinteger(l: State, index: i32) -> i32 = LUAL_CHECKINTEGER;
     fn luau_load(
         l: State,

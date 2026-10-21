@@ -26,7 +26,7 @@ static NAMECALL_DIRECT: AtomicUsize = AtomicUsize::new(0);
 pub unsafe fn install(state: State) {
     unsafe {
         lua_getfield(state, LUA_GLOBALSINDEX, c"game".as_ptr());
-        let game = top(state);
+        let game = pointer(state, -1);
         GAME.store(game as usize, Ordering::Relaxed);
         let record = read::<usize>(state, THREAD_GLOBAL)
             + GLOBAL_DISPATCH
@@ -53,14 +53,10 @@ pub unsafe fn install(state: State) {
     }
 }
 
-unsafe fn top(l: State) -> *mut u8 {
-    unsafe { read::<*mut u8>(l, THREAD_TOP).sub(16).cast::<*mut u8>().read() }
-}
-
 unsafe fn closure(l: State, key: &CStr) -> usize {
     unsafe {
         lua_getfield(l, -1, key.as_ptr());
-        let closure = top(l) as usize + CLOSURE_FUNCTION;
+        let closure = pointer(l, -1) as usize + CLOSURE_FUNCTION;
         lua_settop(l, -2);
         closure
     }
@@ -153,21 +149,7 @@ unsafe fn push_httpget(l: State) {
 /// Whether `self` is `game` and the caller's globals chain to our environment.
 unsafe fn ours(l: State) -> bool {
     unsafe {
-        lua_pushvalue(l, 1);
-        let game = top(l) as usize == GAME.load(Ordering::Relaxed);
-        lua_settop(l, -2);
-        if !game {
-            return false;
-        }
-        lua_pushvalue(l, LUA_GLOBALSINDEX);
-        if lua_getmetatable(l, -1) == 0 {
-            lua_settop(l, -2);
-            return false;
-        }
-        lua_getfield(l, -1, c"__index".as_ptr());
-        lua_getfield(l, LUA_REGISTRYINDEX, KEY.as_ptr());
-        let ours = lua_rawequal(l, -1, -2) != 0;
-        lua_settop(l, -5);
-        ours
+        pointer(l, 1) as usize == GAME.load(Ordering::Relaxed)
+            && super::ours(l)
     }
 }

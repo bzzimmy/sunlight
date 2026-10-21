@@ -1,6 +1,8 @@
 mod base;
+mod closure;
 mod game;
 mod http;
+mod meta;
 mod native;
 
 use std::ffi::{CStr, c_char};
@@ -73,5 +75,21 @@ unsafe fn load(l: State, source: &[u8], chunk: *const c_char) -> bool {
             roblox::set_proto_capabilities(l, -1, &roblox::CAPABILITIES);
         }
         loaded
+    }
+}
+
+/// Whether the running thread's globals fall through to our environment.
+pub unsafe fn ours(l: State) -> bool {
+    unsafe {
+        lua_pushvalue(l, LUA_GLOBALSINDEX);
+        if lua_getmetatable(l, -1) == 0 {
+            lua_settop(l, -2);
+            return false;
+        }
+        lua_getfield(l, -1, c"__index".as_ptr());
+        lua_getfield(l, LUA_REGISTRYINDEX, KEY.as_ptr());
+        let ours = lua_rawequal(l, -1, -2) != 0;
+        lua_settop(l, -5);
+        ours
     }
 }

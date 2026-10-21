@@ -30,3 +30,8 @@ pub unsafe extern "C-unwind" fn setthreadidentity(l: State) -> i32 {
     }
     0
 }
+
+pub unsafe extern "C-unwind" fn getreg(l: State) -> i32 {
+    unsafe { lua_pushvalue(l, LUA_REGISTRYINDEX) };
+    1
+}

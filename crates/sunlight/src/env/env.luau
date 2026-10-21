@@ -34,6 +34,9 @@ local request = newcclosure(function(options)
 end)
 
 local require = require
+local renv, registry = native.getrawmetatable(genv).__index, native.getreg()
+native.setreadonly(renv, false)
+renv._G, renv.shared = registry[2], registry[4]
 
 export({
 	newcclosure = newcclosure,
@@ -47,6 +50,23 @@ export({
 	getgenv = function()
 		return genv
 	end,
+	getrenv = function()
+		return renv
+	end,
+	getreg = native.getreg,
+	checkcaller = native.checkcaller,
+	iscclosure = native.iscclosure,
+	islclosure = native.islclosure,
+	isexecutorclosure = native.isexecutorclosure,
+	clonefunction = native.clonefunction,
+	getrawmetatable = native.getrawmetatable,
+	setrawmetatable = native.setrawmetatable,
+	isreadonly = native.isreadonly,
+	setreadonly = native.setreadonly,
+	makereadonly = function(table)
+		native.setreadonly(table, true)
+	end,
+	getnamecallmethod = native.getnamecallmethod,
 	identifyexecutor = function()
 		return "Sunlight", version
 	end,
@@ -69,4 +89,6 @@ genv._G = {}
 genv.shared = {}
 genv.script = Instance.new("LocalScript")
 genv.getexecutorname = genv.identifyexecutor
+genv.isourclosure = genv.isexecutorclosure
+genv.checkclosure = genv.isexecutorclosure
 genv.http = { request = request }

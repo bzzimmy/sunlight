@@ -1,16 +1,26 @@
 use std::ffi::CStr;
-use std::ptr;
 
-use super::{base, http};
+use super::{base, closure, http, meta};
 use crate::lua::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-const NATIVES: &[(&CStr, CFunction)] = &[
-    (c"newcclosure", newcclosure),
+pub(super) const NATIVES: &[(&CStr, CFunction)] = &[
+    (c"newcclosure", closure::newcclosure),
+    (c"iscclosure", closure::iscclosure),
+    (c"islclosure", closure::islclosure),
+    (c"isexecutorclosure", closure::isexecutorclosure),
+    (c"clonefunction", closure::clonefunction),
+    (c"checkcaller", closure::checkcaller),
     (c"loadstring", base::loadstring),
     (c"getthreadidentity", base::getthreadidentity),
     (c"setthreadidentity", base::setthreadidentity),
+    (c"getreg", base::getreg),
+    (c"getrawmetatable", meta::getrawmetatable),
+    (c"setrawmetatable", meta::setrawmetatable),
+    (c"isreadonly", meta::isreadonly),
+    (c"setreadonly", meta::setreadonly),
+    (c"getnamecallmethod", meta::getnamecallmethod),
     (c"request", http::request),
     (c"httpget", http::httpget),
 ];
@@ -26,28 +36,4 @@ pub unsafe fn push(l: State) {
         lua_pushlstring(l, VERSION.as_ptr().cast(), VERSION.len());
         lua_setfield(l, -2, c"version".as_ptr());
     }
-}
-
-unsafe extern "C-unwind" fn newcclosure(l: State) -> i32 {
-    unsafe {
-        luaL_checktype(l, 1, LUA_TFUNCTION);
-        let name = opt_string(l, 2, ptr::null());
-        lua_pushvalue(l, 1);
-        lua_pushcclosurek(l, call, name, 1, Some(finish));
-    }
-    1
-}
-
-unsafe extern "C-unwind" fn call(l: State) -> i32 {
-    unsafe {
-        let arguments = lua_gettop(l);
-        lua_pushvalue(l, lua_upvalueindex(1));
-        lua_insert(l, 1);
-        lua_call(l, arguments, LUA_MULTRET);
-        if lua_status(l) == LUA_OK { lua_gettop(l) } else { -1 }
-    }
-}
-
-unsafe extern "C-unwind" fn finish(l: State, _status: i32) -> i32 {
-    unsafe { lua_gettop(l) }
 }
