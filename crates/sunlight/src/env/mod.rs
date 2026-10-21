@@ -1,4 +1,6 @@
 mod base;
+mod game;
+mod http;
 mod native;
 
 use std::ffi::{CStr, c_char};
@@ -30,6 +32,7 @@ unsafe fn create(state: State) {
     unsafe {
         roblox::sandbox_thread(state);
         lua_setfield(state, LUA_REGISTRYINDEX, KEY.as_ptr());
+        game::install(state);
         spawn(state, include_bytes!("env.luau"), |thread| {
             native::push(thread);
             lua_getfield(thread, LUA_REGISTRYINDEX, KEY.as_ptr());

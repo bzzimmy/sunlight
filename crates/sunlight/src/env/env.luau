@@ -10,6 +10,29 @@ local function export(functions)
 	end
 end
 
+local methods = { GET = true, HEAD = true, POST = true, PUT = true, DELETE = true, OPTIONS = true, PATCH = true }
+
+local request = newcclosure(function(options)
+	assert(type(options) == "table", "request: options must be a table")
+	local url = options.Url
+	assert(type(url) == "string" and url:find("^https?://"), "request: Url must be an http:// or https:// URL")
+	local method = string.upper(options.Method or "GET")
+	assert(methods[method], `request: unsupported method {method}`)
+	assert(options.Body == nil or type(options.Body) == "string", "request: Body must be a string")
+	local headers = {}
+	for name, value in options.Headers or {} do
+		headers[tostring(name)] = tostring(value)
+	end
+	if options.Cookies then
+		local cookies = {}
+		for name, value in options.Cookies do
+			table.insert(cookies, `{name}={value}`)
+		end
+		headers.Cookie = table.concat(cookies, "; ")
+	end
+	return native.request(url, method, headers, options.Body)
+end)
+
 export({
 	newcclosure = newcclosure,
 	loadstring = native.loadstring,
@@ -25,5 +48,10 @@ export({
 	identifyexecutor = function()
 		return "Sunlight", version
 	end,
+	request = request,
+	http_request = request,
+	HttpGet = native.httpget,
+	HttpGetAsync = native.httpget,
 })
 genv.getexecutorname = genv.identifyexecutor
+genv.http = { request = request }

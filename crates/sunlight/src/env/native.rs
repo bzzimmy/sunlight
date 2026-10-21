@@ -1,7 +1,7 @@
 use std::ffi::CStr;
 use std::ptr;
 
-use super::base;
+use super::{base, http};
 use crate::lua::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -11,6 +11,8 @@ const NATIVES: &[(&CStr, CFunction)] = &[
     (c"loadstring", base::loadstring),
     (c"getthreadidentity", base::getthreadidentity),
     (c"setthreadidentity", base::setthreadidentity),
+    (c"request", http::request),
+    (c"httpget", http::httpget),
 ];
 
 /// Pushes the table `env.luau` receives the native functions in.

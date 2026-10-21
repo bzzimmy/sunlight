@@ -1,10 +1,12 @@
 mod env;
 mod hooks;
+mod http;
 mod image;
 mod ipc;
 mod lua;
 mod offsets;
 mod roblox;
+mod task;
 
 use std::ffi::c_void;
 use std::panic;
@@ -60,6 +62,7 @@ unsafe extern "C-unwind" fn step(job: *mut u8, stats: *mut c_void) -> i32 {
     let data_model: *mut u8 = unsafe { read(job, offsets::JOB_DATA_MODEL) };
     if unsafe { in_game(data_model) } {
         let script_context = unsafe { read(job, offsets::JOB_SCRIPT_CONTEXT) };
+        unsafe { task::resume(roblox::global_state(script_context)) };
         for source in ipc::take() {
             unsafe { env::execute(script_context, &source) };
         }

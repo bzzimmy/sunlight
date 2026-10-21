@@ -1,4 +1,4 @@
-use std::ffi::c_char;
+use std::ffi::{CStr, c_char};
 
 use crate::offsets::*;
 
@@ -11,6 +11,7 @@ pub const LUA_GLOBALSINDEX: i32 = -10002;
 pub const LUA_MULTRET: i32 = -1;
 pub const LUA_OK: i32 = 0;
 pub const LUA_TNIL: i32 = 0;
+pub const LUA_TSTRING: i32 = 6;
 pub const LUA_TFUNCTION: i32 = 8;
 
 pub const fn lua_upvalueindex(index: i32) -> i32 {
@@ -30,6 +31,18 @@ pub unsafe fn opt_string(
             default
         }
     }
+}
+
+/// Raises `message` as a Lua error.
+pub unsafe fn error(l: State, message: &CStr) -> ! {
+    unsafe {
+        let error = std::mem::transmute::<
+            usize,
+            unsafe extern "C-unwind" fn(State, *const c_char, ...) -> i32,
+        >(crate::rebase(LUAL_ERROR));
+        error(l, c"%s".as_ptr(), message.as_ptr());
+    }
+    unreachable!()
 }
 
 /// Declares wrappers that call `RobloxLib` functions at unslid addresses.
@@ -56,9 +69,21 @@ engine! {
     fn lua_replace(l: State, index: i32) = LUA_REPLACE;
     fn lua_pushvalue(l: State, index: i32) = LUA_PUSHVALUE;
     fn lua_type(l: State, index: i32) -> i32 = LUA_TYPE;
+    fn lua_rawequal(l: State, a: i32, b: i32) -> i32 = LUA_RAWEQUAL;
     fn lua_tolstring(l: State, index: i32, size: *mut usize) -> *const c_char
         = LUA_TOLSTRING;
+    fn lua_tolstringatom(
+        l: State,
+        index: i32,
+        size: *mut usize,
+        atom: *mut i32
+    ) -> *const c_char = LUA_TOLSTRINGATOM;
+    fn lua_namecallatom(l: State, atom: *mut i32) -> *const c_char
+        = LUA_NAMECALLATOM;
+    fn lua_tothread(l: State, index: i32) -> State = LUA_TOTHREAD;
     fn lua_pushnil(l: State) = LUA_PUSHNIL;
+    fn lua_pushboolean(l: State, value: i32) = LUA_PUSHBOOLEAN;
+    fn lua_pushthread(l: State) -> i32 = LUA_PUSHTHREAD;
     fn lua_pushinteger(l: State, value: i32) = LUA_PUSHINTEGER;
     fn lua_pushlstring(l: State, value: *const c_char, size: usize)
         = LUA_PUSHLSTRING;
@@ -71,10 +96,19 @@ engine! {
     ) = LUA_PUSHCCLOSUREK;
     fn lua_getfield(l: State, index: i32, key: *const c_char) -> i32
         = LUA_GETFIELD;
+    fn lua_rawgeti(l: State, index: i32, n: i32) -> i32 = LUA_RAWGETI;
     fn lua_createtable(l: State, array: i32, records: i32) = LUA_CREATETABLE;
+    fn lua_getmetatable(l: State, index: i32) -> i32 = LUA_GETMETATABLE;
     fn lua_setfield(l: State, index: i32, key: *const c_char) = LUA_SETFIELD;
+    fn lua_rawset(l: State, index: i32) = LUA_RAWSET;
     fn lua_call(l: State, arguments: i32, results: i32) = LUA_CALL;
+    fn lua_pcall(l: State, arguments: i32, results: i32, handler: i32) -> i32
+        = LUA_PCALL;
     fn lua_status(l: State) -> i32 = LUA_STATUS;
+    fn lua_next(l: State, index: i32) -> i32 = LUA_NEXT;
+    fn lua_ref(l: State, index: i32) -> i32 = LUA_REF;
+    fn lua_unref(l: State, reference: i32) = LUA_UNREF;
+    fn lua_yield(l: State, results: i32) -> i32 = LUA_YIELD;
     fn luaL_checklstring(l: State, index: i32, size: *mut usize)
         -> *const c_char = LUAL_CHECKLSTRING;
     fn luaL_checktype(l: State, index: i32, kind: i32) = LUAL_CHECKTYPE;
