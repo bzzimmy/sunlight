@@ -1,15 +1,17 @@
-use std::slice;
+use std::ffi::c_char;
 
 use super::{CHUNK, load};
 use crate::lua::*;
 use crate::roblox;
 
 pub unsafe extern "C-unwind" fn loadstring(l: State) -> i32 {
+    unsafe { chunk(l, bytes(l, 1), opt_string(l, 2, CHUNK.as_ptr())) }
+}
+
+/// Pushes the compiled chunk, or nil and the compile error.
+pub unsafe fn chunk(l: State, source: &[u8], name: *const c_char) -> i32 {
     unsafe {
-        let mut size = 0;
-        let source = luaL_checklstring(l, 1, &mut size);
-        let chunk = opt_string(l, 2, CHUNK.as_ptr());
-        if load(l, slice::from_raw_parts(source.cast(), size), chunk) {
+        if load(l, source, name) {
             return 1;
         }
         lua_pushnil(l);

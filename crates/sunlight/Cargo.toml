@@ -12,5 +12,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 anyhow = "1.0.104"
+base64 = "0.22"
 curl = { version = "0.4", default-features = false }
+lz4_flex = { version = "0.14", default-features = false, features = ["alloc", "safe-encode", "safe-decode"] }
 luau = { path = "../luau" }

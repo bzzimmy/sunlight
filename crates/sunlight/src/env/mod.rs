@@ -1,5 +1,7 @@
 mod base;
 mod closure;
+mod encoding;
+mod fs;
 mod game;
 mod http;
 mod meta;

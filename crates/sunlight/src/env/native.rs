@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use super::{base, closure, http, meta};
+use super::{base, closure, encoding, fs, http, meta};
 use crate::lua::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -23,6 +23,21 @@ pub(super) const NATIVES: &[(&CStr, CFunction)] = &[
     (c"getnamecallmethod", meta::getnamecallmethod),
     (c"request", http::request),
     (c"httpget", http::httpget),
+    (c"readfile", fs::readfile),
+    (c"writefile", fs::writefile),
+    (c"appendfile", fs::appendfile),
+    (c"isfile", fs::isfile),
+    (c"isfolder", fs::isfolder),
+    (c"makefolder", fs::makefolder),
+    (c"delfile", fs::delfile),
+    (c"delfolder", fs::delfolder),
+    (c"listfiles", fs::listfiles),
+    (c"loadfile", fs::loadfile),
+    (c"getcustomasset", fs::getcustomasset),
+    (c"base64encode", encoding::base64encode),
+    (c"base64decode", encoding::base64decode),
+    (c"lz4compress", encoding::lz4compress),
+    (c"lz4decompress", encoding::lz4decompress),
 ];
 
 /// Pushes the table `env.luau` receives the native functions in.

@@ -1,5 +1,6 @@
-use std::ffi::{CStr, c_char};
-use std::ptr;
+use std::ffi::{CStr, CString, c_char};
+use std::fmt::Display;
+use std::{ptr, slice};
 
 use crate::offsets::*;
 use crate::read;
@@ -47,6 +48,25 @@ pub unsafe fn error(l: State, message: &CStr) -> ! {
         error(l, c"%s".as_ptr(), message.as_ptr());
     }
     unreachable!()
+}
+
+/// Raises a formatted value, such as an `io::Error`, as a Lua error.
+pub unsafe fn fail(l: State, message: impl Display) -> ! {
+    let message = CString::new(message.to_string()).unwrap_or_default();
+    unsafe { error(l, &message) }
+}
+
+/// Borrows the string argument at `index`.
+pub unsafe fn bytes<'a>(l: State, index: i32) -> &'a [u8] {
+    unsafe {
+        let mut size = 0;
+        let data = luaL_checklstring(l, index, &mut size);
+        slice::from_raw_parts(data.cast(), size)
+    }
+}
+
+pub unsafe fn push_bytes(l: State, bytes: &[u8]) {
+    unsafe { lua_pushlstring(l, bytes.as_ptr().cast(), bytes.len()) }
 }
 
 /// Returns the collectable object at `index`.

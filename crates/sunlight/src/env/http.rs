@@ -1,5 +1,3 @@
-use std::slice;
-
 use crate::http::{self, Request, Response};
 use crate::lua::*;
 use crate::task;
@@ -16,7 +14,10 @@ pub unsafe extern "C-unwind" fn request(l: State) -> i32 {
             url: string(l, 1),
             method: string(l, 2),
             headers,
-            body: bytes(l, 4),
+            body: match lua_type(l, 4) {
+                LUA_TNIL => Vec::new(),
+                _ => bytes(l, 4).to_vec(),
+            },
         };
         task::suspend(l, move || {
             let response = http::send(&request);
@@ -78,21 +79,6 @@ unsafe fn push(l: State, response: Result<Response, curl::Error>) -> i32 {
     1
 }
 
-unsafe fn push_bytes(l: State, bytes: &[u8]) {
-    unsafe { lua_pushlstring(l, bytes.as_ptr().cast(), bytes.len()) }
-}
-
 unsafe fn string(l: State, index: i32) -> String {
-    String::from_utf8_lossy(&unsafe { bytes(l, index) }).into_owned()
-}
-
-unsafe fn bytes(l: State, index: i32) -> Vec<u8> {
-    unsafe {
-        if lua_type(l, index) <= LUA_TNIL {
-            return Vec::new();
-        }
-        let mut size = 0;
-        let data = luaL_checklstring(l, index, &mut size);
-        slice::from_raw_parts(data.cast(), size).to_vec()
-    }
+    String::from_utf8_lossy(unsafe { bytes(l, index) }).into_owned()
 }

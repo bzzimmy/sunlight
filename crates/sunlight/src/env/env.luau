@@ -67,6 +67,23 @@ export({
 		native.setreadonly(table, true)
 	end,
 	getnamecallmethod = native.getnamecallmethod,
+	readfile = native.readfile,
+	writefile = native.writefile,
+	appendfile = native.appendfile,
+	isfile = native.isfile,
+	isfolder = native.isfolder,
+	makefolder = native.makefolder,
+	delfile = native.delfile,
+	delfolder = native.delfolder,
+	listfiles = native.listfiles,
+	loadfile = native.loadfile,
+	getcustomasset = native.getcustomasset,
+	base64encode = native.base64encode,
+	base64decode = native.base64decode,
+	base64_encode = native.base64encode,
+	base64_decode = native.base64decode,
+	lz4compress = native.lz4compress,
+	lz4decompress = native.lz4decompress,
 	identifyexecutor = function()
 		return "Sunlight", version
 	end,
@@ -92,3 +109,13 @@ genv.getexecutorname = genv.identifyexecutor
 genv.isourclosure = genv.isexecutorclosure
 genv.checkclosure = genv.isexecutorclosure
 genv.http = { request = request }
+genv.base64 = { encode = native.base64encode, decode = native.base64decode }
+genv.crypt = {
+	base64 = genv.base64,
+	base64encode = native.base64encode,
+	base64decode = native.base64decode,
+	base64_encode = native.base64encode,
+	base64_decode = native.base64decode,
+	lz4compress = native.lz4compress,
+	lz4decompress = native.lz4decompress,
+}
