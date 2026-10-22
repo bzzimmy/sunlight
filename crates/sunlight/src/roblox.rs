@@ -22,6 +22,7 @@ engine! {
     fn identity_capabilities(identity: *const u32) -> u64
         = IDENTITY_CAPABILITIES;
     fn security_context() -> *mut u8 = SECURITY_CONTEXT;
+    fn push_instance(l: State, instance: *mut u8) = PUSH_INSTANCE;
 }
 
 pub unsafe fn print(level: i32, message: &CStr) {

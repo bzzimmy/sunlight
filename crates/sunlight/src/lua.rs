@@ -125,9 +125,13 @@ engine! {
     ) -> *const c_char = LUA_TOLSTRINGATOM;
     fn lua_namecallatom(l: State, atom: *mut i32) -> *const c_char
         = LUA_NAMECALLATOM;
+    fn lua_touserdatatagged(l: State, index: i32, tag: i32) -> *mut u8
+        = LUA_TOUSERDATATAGGED;
     fn lua_tothread(l: State, index: i32) -> State = LUA_TOTHREAD;
     fn lua_pushnil(l: State) = LUA_PUSHNIL;
     fn lua_pushboolean(l: State, value: i32) = LUA_PUSHBOOLEAN;
+    fn lua_pushlightuserdatatagged(l: State, value: *mut u8, tag: i32)
+        = LUA_PUSHLIGHTUSERDATATAGGED;
     fn lua_pushthread(l: State) -> i32 = LUA_PUSHTHREAD;
     fn lua_pushinteger(l: State, value: i32) = LUA_PUSHINTEGER;
     fn lua_pushlstring(l: State, value: *const c_char, size: usize)
@@ -142,6 +146,8 @@ engine! {
     fn lua_getfield(l: State, index: i32, key: *const c_char) -> i32
         = LUA_GETFIELD;
     fn lua_rawgeti(l: State, index: i32, n: i32) -> i32 = LUA_RAWGETI;
+    fn lua_rawgetptagged(l: State, index: i32, key: *mut u8, tag: i32) -> i32
+        = LUA_RAWGETPTAGGED;
     fn lua_createtable(l: State, array: i32, records: i32) = LUA_CREATETABLE;
     fn lua_setreadonly(l: State, index: i32, enabled: i32) = LUA_SETREADONLY;
     fn lua_getreadonly(l: State, index: i32) -> i32 = LUA_GETREADONLY;

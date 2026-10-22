@@ -4,6 +4,7 @@ mod encoding;
 mod fs;
 mod game;
 mod http;
+mod instance;
 mod meta;
 mod native;
 

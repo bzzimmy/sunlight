@@ -38,6 +38,33 @@ local renv, registry = native.getrawmetatable(genv).__index, native.getreg()
 native.setreadonly(renv, false)
 renv._G, renv.shared = registry[2], registry[4]
 
+local instances, key = native.instancecache(), native.instancekey
+
+local function cached(keep)
+	local list = {}
+	-- iterates a copy, as reading an Instance can cache others mid-traversal
+	for k, instance in setmetatable(table.clone(instances), nil) do
+		if type(k) == "userdata" and (not keep or keep(instance)) then
+			table.insert(list, instance)
+		end
+	end
+	return list
+end
+
+local hui = Instance.new("Folder")
+hui.Name = game:GetService("HttpService"):GenerateGUID(false)
+hui.Parent = game:GetService("CoreGui")
+
+-- these never fire for the iPad app on macOS; check NSRunningApplication.isActive natively if Input needs it
+local active = true
+local UserInputService = game:GetService("UserInputService")
+UserInputService.WindowFocused:Connect(function()
+	active = true
+end)
+UserInputService.WindowFocusReleased:Connect(function()
+	active = false
+end)
+
 export({
 	newcclosure = newcclosure,
 	loadstring = native.loadstring,
@@ -67,6 +94,38 @@ export({
 		native.setreadonly(table, true)
 	end,
 	getnamecallmethod = native.getnamecallmethod,
+	getinstances = function()
+		return cached()
+	end,
+	getnilinstances = function()
+		return cached(function(instance)
+			return instance.Parent == nil and instance ~= game
+		end)
+	end,
+	getscripts = function()
+		return cached(function(instance)
+			return instance:IsA("LocalScript")
+				or instance:IsA("ModuleScript")
+				or instance:IsA("Script") and instance.RunContext == Enum.RunContext.Client
+		end)
+	end,
+	cloneref = function(instance)
+		local k = key(instance)
+		local original = instances[k]
+		instances[k] = nil
+		local clone = native.pushinstance(instance)
+		instances[k] = original
+		return native.setrawmetatable(clone, native.getrawmetatable(instance))
+	end,
+	compareinstances = function(a, b)
+		return key(a) == key(b)
+	end,
+	gethui = function()
+		return hui
+	end,
+	isrbxactive = function()
+		return active
+	end,
 	readfile = native.readfile,
 	writefile = native.writefile,
 	appendfile = native.appendfile,
@@ -108,6 +167,22 @@ genv.script = Instance.new("LocalScript")
 genv.getexecutorname = genv.identifyexecutor
 genv.isourclosure = genv.isexecutorclosure
 genv.checkclosure = genv.isexecutorclosure
+genv.clonereference = genv.cloneref
+genv.get_hidden_gui = genv.gethui
+genv.iswindowactive = genv.isrbxactive
+genv.isgameactive = genv.isrbxactive
+genv.cache = {
+	invalidate = newcclosure(function(instance)
+		instances[key(instance)] = nil
+	end),
+	iscached = newcclosure(function(instance)
+		return instances[key(instance)] ~= nil
+	end),
+	replace = newcclosure(function(instance, replacement)
+		key(replacement) -- only Instances may enter the cache
+		instances[key(instance)] = replacement
+	end),
+}
 genv.http = { request = request }
 genv.base64 = { encode = native.base64encode, decode = native.base64decode }
 genv.crypt = {

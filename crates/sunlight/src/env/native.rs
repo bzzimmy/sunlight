@@ -1,6 +1,6 @@
 use std::ffi::CStr;
 
-use super::{base, closure, encoding, fs, http, meta};
+use super::{base, closure, encoding, fs, http, instance, meta};
 use crate::lua::*;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -21,6 +21,9 @@ pub(super) const NATIVES: &[(&CStr, CFunction)] = &[
     (c"isreadonly", meta::isreadonly),
     (c"setreadonly", meta::setreadonly),
     (c"getnamecallmethod", meta::getnamecallmethod),
+    (c"instancecache", instance::instancecache),
+    (c"instancekey", instance::instancekey),
+    (c"pushinstance", instance::pushinstance),
     (c"request", http::request),
     (c"httpget", http::httpget),
     (c"readfile", fs::readfile),
