@@ -19,6 +19,8 @@ static INDEX: AtomicUsize = AtomicUsize::new(0);
 static NAMECALL: AtomicUsize = AtomicUsize::new(0);
 static INDEX_DIRECT: AtomicUsize = AtomicUsize::new(0);
 static NAMECALL_DIRECT: AtomicUsize = AtomicUsize::new(0);
+static RECORD: AtomicUsize = AtomicUsize::new(0);
+static METATABLE: AtomicUsize = AtomicUsize::new(0);
 
 /// Hooks both Instance lookups: the `__index` and `__namecall` closures that
 /// unknown names reach, and the per-tag dispatch record the VM calls once it
@@ -31,12 +33,14 @@ pub unsafe fn install(state: State) {
         let record = read::<usize>(state, THREAD_GLOBAL)
             + GLOBAL_DISPATCH
             + DISPATCH_SIZE * usize::from(read::<u8>(game, USERDATA_TAG));
+        RECORD.store(record, Ordering::Relaxed);
         lua_pushlstring(state, c"HttpGetAsync".as_ptr(), 12);
         let mut atom = -1;
         lua_tolstringatom(state, -1, ptr::null_mut(), &mut atom);
         ATOM.store(atom, Ordering::Relaxed);
         lua_settop(state, -2);
         lua_getmetatable(state, -1);
+        METATABLE.store(pointer(state, -1) as usize, Ordering::Relaxed);
         swap(&INDEX, closure(state, c"__index"), index as *const ());
         swap(&NAMECALL, closure(state, c"__namecall"), namecall as *const ());
         swap(
@@ -50,6 +54,17 @@ pub unsafe fn install(state: State) {
             namecall_direct as *const (),
         );
         lua_settop(state, -3);
+    }
+}
+
+/// Disarms the dispatch record once the Instance metatable is writable, so
+/// known members go through the metatable and see replaced metamethods.
+pub unsafe fn detach(table: *mut u8) {
+    if table as usize == METATABLE.load(Ordering::Relaxed) {
+        let record = RECORD.load(Ordering::Relaxed);
+        for slot in [DISPATCH_INDEX, DISPATCH_NEWINDEX, DISPATCH_NAMECALL] {
+            unsafe { ((record + slot) as *mut usize).write(0) };
+        }
     }
 }
 

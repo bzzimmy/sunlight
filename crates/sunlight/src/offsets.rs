@@ -91,4 +91,5 @@ pub const USERDATA_TAG: usize = 0x3;
 pub const GLOBAL_DISPATCH: usize = 0x920;
 pub const DISPATCH_SIZE: usize = 72;
 pub const DISPATCH_INDEX: usize = 0x30;
+pub const DISPATCH_NEWINDEX: usize = 0x38;
 pub const DISPATCH_NAMECALL: usize = 0x40;

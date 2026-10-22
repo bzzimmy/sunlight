@@ -37,7 +37,11 @@ pub unsafe extern "C-unwind" fn setreadonly(l: State) -> i32 {
     unsafe {
         luaL_checktype(l, 1, LUA_TTABLE);
         luaL_checktype(l, 2, LUA_TBOOLEAN);
-        lua_setreadonly(l, 1, lua_toboolean(l, 2) as i32);
+        let enabled = lua_toboolean(l, 2);
+        if !enabled {
+            super::game::detach(pointer(l, 1));
+        }
+        lua_setreadonly(l, 1, enabled as i32);
     }
     0
 }
